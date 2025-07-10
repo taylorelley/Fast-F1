@@ -72,3 +72,15 @@ FastF1 and this website are unofficial and are not associated in any way with
 the Formula 1 companies. F1, FORMULA ONE, FORMULA 1, FIA FORMULA ONE WORLD
 CHAMPIONSHIP, GRAND PRIX and related marks are trade marks of Formula One
 Licensing B.V.
+
+## Web Frontend
+
+This repository includes a small FastAPI based web application that lets you
+load historical race data and display a demo live timing stream. To start the
+service using Docker run:
+
+```bash
+docker compose up --build
+```
+
+The UI will be available at http://localhost:8000.
