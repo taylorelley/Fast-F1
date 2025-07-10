@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>FastF1 Web</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            max-width: 800px;
+            margin: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        #stream pre {
+            margin: 0;
+        }
+    </style>
+    <script>
+        async function loadHistorical() {
+            const season = document.getElementById('season').value;
+            const round = document.getElementById('round').value;
+            try {
+                const res = await fetch(`/historical?season=${season}&round=${round}`);
+                if (!res.ok) {
+                    throw new Error('Request failed');
+                }
+                const data = await res.json();
+                renderResults(data);
+            } catch (err) {
+                alert('Failed to load data');
+            }
+        }
+
+        async function loadPractice() {
+            const season = document.getElementById('pseason').value;
+            const round = document.getElementById('pround').value;
+            const session = document.getElementById('psession').value;
+            try {
+                const url = `/practice-laps?season=${season}&round=${round}&session=${session}`;
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error('Request failed');
+                }
+                const data = await res.json();
+                renderPractice(data);
+            } catch (err) {
+                alert('Failed to load data');
+            }
+        }
+
+        function renderPractice(data) {
+            const container = document.getElementById('practice');
+            container.innerHTML = '';
+            if (!data.length) {
+                container.textContent = 'No data';
+                return;
+            }
+            const table = document.createElement('table');
+            const headRow = document.createElement('tr');
+            for (const key of Object.keys(data[0])) {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headRow.appendChild(th);
+            }
+            table.appendChild(headRow);
+            for (const rowData of data) {
+                const tr = document.createElement('tr');
+                for (const key of Object.keys(rowData)) {
+                    const td = document.createElement('td');
+                    td.textContent = rowData[key];
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            container.appendChild(table);
+        }
+
+        function renderResults(data) {
+            const container = document.getElementById('history');
+            container.innerHTML = '';
+            if (!data.length) {
+                container.textContent = 'No data';
+                return;
+            }
+            const table = document.createElement('table');
+            const headRow = document.createElement('tr');
+            for (const key of Object.keys(data[0])) {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headRow.appendChild(th);
+            }
+            table.appendChild(headRow);
+            for (const rowData of data) {
+                const tr = document.createElement('tr');
+                for (const key of Object.keys(rowData)) {
+                    const td = document.createElement('td');
+                    td.textContent = rowData[key];
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            container.appendChild(table);
+        }
+
+        let ws;
+        function startStream() {
+            document.getElementById('stream').innerHTML = '';
+            fetch('/admin/start', {method: 'POST'});
+            ws = new WebSocket(`ws://${location.host}/ws`);
+            ws.onmessage = (ev) => {
+                const pre = document.createElement('pre');
+                pre.textContent = ev.data;
+                document.getElementById('stream').appendChild(pre);
+            };
+        }
+
+        function stopStream() {
+            fetch('/admin/stop', {method: 'POST'});
+            if (ws) { ws.close(); }
+        }
+    </script>
+</head>
+<body>
+<h1>FastF1 Web</h1>
+<div>
+    <h2>Historical Data</h2>
+    Season: <input id="season" value="2023" />
+    Round: <input id="round" value="1" />
+    <button onclick="loadHistorical()">Load</button>
+    <div id="history"></div>
+</div>
+<div>
+    <h2>Practice Lap Times</h2>
+    Season: <input id="pseason" value="2023" />
+    Round: <input id="pround" value="1" />
+    Session: <input id="psession" value="1" />
+    <button onclick="loadPractice()">Load</button>
+    <div id="practice"></div>
+</div>
+<div>
+    <h2>Live Stream</h2>
+    <button onclick="startStream()">Start Stream</button>
+    <button onclick="stopStream()">Stop Stream</button>
+    <div id="stream"></div>
+</div>
+</body>
+</html>
