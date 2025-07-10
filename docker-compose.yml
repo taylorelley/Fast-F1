@@ -7,3 +7,13 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
     restart: unless-stopped
+
+  lap-time-api:
+    build:
+      context: .
+      dockerfile: lap_time_api/Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      PYTHONUNBUFFERED: "1"
+    restart: unless-stopped

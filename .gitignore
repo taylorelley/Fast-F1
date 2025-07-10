@@ -37,3 +37,4 @@ docs/gen_modules/
 # other data directories
 reference/
 recordings/
+lap_time_api/data/

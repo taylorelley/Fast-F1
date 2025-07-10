@@ -76,8 +76,7 @@ Licensing B.V.
 ## Web Frontend
 
 This repository includes a small FastAPI based web application that lets you
-load historical race data, fetch practice lap times and display a demo live
-timing stream. To start the
+load historical race data and display a demo live timing stream. To start the
 service using Docker run:
 
 ```bash
@@ -85,3 +84,26 @@ docker compose up --build
 ```
 
 The UI will be available at http://localhost:8000.
+
+## Lap Time API
+
+The lap time endpoint is now provided as its own FastAPI application located in
+`lap_time_api`. The API can be started independently using Uvicorn:
+
+```bash
+uvicorn lap_time_api.main:app --reload
+```
+
+This separation allows the lap time API to run without any of the additional
+functionality used by the demo web frontend. Whenever the endpoint is queried,
+the loaded lap data is automatically stored under `lap_time_api/data/` for
+future reference.
+
+The service can also be started using Docker compose which builds the
+`lap-time-api` service defined in `docker-compose.yml`:
+
+```bash
+docker compose up --build lap-time-api
+```
+
+See [`lap_time_api/README.md`](lap_time_api/README.md) for additional details.
