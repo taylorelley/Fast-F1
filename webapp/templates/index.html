@@ -40,6 +40,50 @@
             }
         }
 
+        async function loadPractice() {
+            const season = document.getElementById('pseason').value;
+            const round = document.getElementById('pround').value;
+            const session = document.getElementById('psession').value;
+            try {
+                const url = `/practice-laps?season=${season}&round=${round}&session=${session}`;
+                const res = await fetch(url);
+                if (!res.ok) {
+                    throw new Error('Request failed');
+                }
+                const data = await res.json();
+                renderPractice(data);
+            } catch (err) {
+                alert('Failed to load data');
+            }
+        }
+
+        function renderPractice(data) {
+            const container = document.getElementById('practice');
+            container.innerHTML = '';
+            if (!data.length) {
+                container.textContent = 'No data';
+                return;
+            }
+            const table = document.createElement('table');
+            const headRow = document.createElement('tr');
+            for (const key of Object.keys(data[0])) {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headRow.appendChild(th);
+            }
+            table.appendChild(headRow);
+            for (const rowData of data) {
+                const tr = document.createElement('tr');
+                for (const key of Object.keys(rowData)) {
+                    const td = document.createElement('td');
+                    td.textContent = rowData[key];
+                    tr.appendChild(td);
+                }
+                table.appendChild(tr);
+            }
+            container.appendChild(table);
+        }
+
         function renderResults(data) {
             const container = document.getElementById('history');
             container.innerHTML = '';
@@ -93,6 +137,14 @@
     Round: <input id="round" value="1" />
     <button onclick="loadHistorical()">Load</button>
     <div id="history"></div>
+</div>
+<div>
+    <h2>Practice Lap Times</h2>
+    Season: <input id="pseason" value="2023" />
+    Round: <input id="pround" value="1" />
+    Session: <input id="psession" value="1" />
+    <button onclick="loadPractice()">Load</button>
+    <div id="practice"></div>
 </div>
 <div>
     <h2>Live Stream</h2>

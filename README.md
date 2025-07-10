@@ -76,7 +76,8 @@ Licensing B.V.
 ## Web Frontend
 
 This repository includes a small FastAPI based web application that lets you
-load historical race data and display a demo live timing stream. To start the
+load historical race data, fetch practice lap times and display a demo live
+timing stream. To start the
 service using Docker run:
 
 ```bash
