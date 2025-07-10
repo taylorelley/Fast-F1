@@ -18,16 +18,22 @@ stream_enabled = False
 app = FastAPI()
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
+
+def get_historical_results(season: int, round_: int) -> list[dict]:
+    """Load and format race results."""
+    session = fastf1.get_session(season, round_, "R")
+    session.load()
+    results = session.results.fillna("").astype(str)
+    return results.to_dict(orient="records")
+
 @app.get("/")
 async def index(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.get("/historical")
 async def historical(season: int, round: int):
-    session = fastf1.get_session(season, round, "R")
-    session.load()
-    results = session.results.fillna("").astype(str)
-    return jsonable_encoder(results.to_dict(orient="records"))
+    data = get_historical_results(season, round)
+    return jsonable_encoder(data)
 
 
 @app.post("/admin/start")
