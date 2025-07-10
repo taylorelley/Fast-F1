@@ -6,6 +6,7 @@ from fastapi import (
     Request,
     WebSocket
 )
+from fastapi.encoders import jsonable_encoder
 from fastapi.templating import Jinja2Templates
 
 import fastf1
@@ -25,8 +26,8 @@ async def index(request: Request):
 async def historical(season: int, round: int):
     session = fastf1.get_session(season, round, "R")
     session.load()
-    results = session.results.to_dict()
-    return results
+    results = session.results.fillna("").astype(str)
+    return jsonable_encoder(results.to_dict(orient="records"))
 
 
 @app.post("/admin/start")

@@ -43,23 +43,26 @@
         function renderResults(data) {
             const container = document.getElementById('history');
             container.innerHTML = '';
+            if (!data.length) {
+                container.textContent = 'No data';
+                return;
+            }
             const table = document.createElement('table');
-            const head = document.createElement('tr');
-            for (const key of Object.keys(data.PositionText)) {
+            const headRow = document.createElement('tr');
+            for (const key of Object.keys(data[0])) {
                 const th = document.createElement('th');
                 th.textContent = key;
-                head.appendChild(th);
+                headRow.appendChild(th);
             }
-            table.appendChild(head);
-            const length = Object.values(data.PositionText).length;
-            for (let i = 0; i < length; i++) {
-                const row = document.createElement('tr');
-                for (const key of Object.keys(data.PositionText)) {
+            table.appendChild(headRow);
+            for (const rowData of data) {
+                const tr = document.createElement('tr');
+                for (const key of Object.keys(rowData)) {
                     const td = document.createElement('td');
-                    td.textContent = data[key][i];
-                    row.appendChild(td);
+                    td.textContent = rowData[key];
+                    tr.appendChild(td);
                 }
-                table.appendChild(row);
+                table.appendChild(tr);
             }
             container.appendChild(table);
         }
@@ -89,7 +92,7 @@
     Season: <input id="season" value="2023" />
     Round: <input id="round" value="1" />
     <button onclick="loadHistorical()">Load</button>
-    <pre id="history"></pre>
+    <div id="history"></div>
 </div>
 <div>
     <h2>Live Stream</h2>
