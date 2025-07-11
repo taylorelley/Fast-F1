@@ -3,6 +3,7 @@ from fastapi.encoders import jsonable_encoder
 import fastf1
 import json
 from pathlib import Path
+import pandas as pd
 
 app = FastAPI()
 
@@ -11,8 +12,25 @@ def get_practice_laps(season: int, round_: int, session: int) -> list[dict]:
     """Load lap times for a practice session."""
     ses = fastf1.get_session(season, round_, f"FP{session}")
     ses.load()
-    laps = ses.laps.fillna("").astype(str)
-    return laps.to_dict(orient="records")
+    laps = ses.laps[
+        ["LapStartDate", "DriverNumber", "PitOutTime", "LapTime", "LapNumber"]
+    ].copy()
+
+    laps["date_start"] = laps["LapStartDate"].apply(
+        lambda x: pd.Timestamp(x, tz="UTC").isoformat()
+    )
+    laps["driver_number"] = pd.to_numeric(laps["DriverNumber"], errors="coerce").astype(
+        "Int64"
+    )
+    laps["is_pit_out_lap"] = laps["PitOutTime"].notna()
+    laps["lap_duration"] = laps["LapTime"].dt.total_seconds()
+    laps["lap_number"] = laps["LapNumber"].astype("Int64")
+
+    result = laps[
+        ["date_start", "driver_number", "is_pit_out_lap", "lap_duration", "lap_number"]
+    ]
+    result = result.where(pd.notnull(result), None)
+    return result.to_dict(orient="records")
 
 
 def save_practice_laps(data: list[dict], season: int, round_: int, session: int) -> None:
