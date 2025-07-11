@@ -17,7 +17,7 @@ def get_practice_laps(season: int, round_: int, session: int) -> list[dict]:
     ].copy()
 
     laps["date_start"] = laps["LapStartDate"].apply(
-        lambda x: pd.Timestamp(x, tz="UTC").isoformat()
+        lambda x: pd.Timestamp(x, tz="UTC").isoformat() if pd.notnull(x) else None
     )
     laps["driver_number"] = pd.to_numeric(laps["DriverNumber"], errors="coerce").astype(
         "Int64"
@@ -29,7 +29,7 @@ def get_practice_laps(season: int, round_: int, session: int) -> list[dict]:
     result = laps[
         ["date_start", "driver_number", "is_pit_out_lap", "lap_duration", "lap_number"]
     ]
-    result = result.where(pd.notnull(result), None)
+    result = result.astype(object).where(pd.notnull(result), None)
     return result.to_dict(orient="records")
 
 
@@ -39,7 +39,7 @@ def save_practice_laps(data: list[dict], season: int, round_: int, session: int)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_file = out_dir / f"{season}_{round_}_FP{session}.json"
     with out_file.open("w", encoding="utf-8") as f:
-        json.dump(data, f)
+        json.dump(data, f, allow_nan=False)
 
 
 def load_saved_practice_laps(season: int, round_: int, session: int) -> list[dict] | None:
@@ -48,7 +48,14 @@ def load_saved_practice_laps(season: int, round_: int, session: int) -> list[dic
     out_file = out_dir / f"{season}_{round_}_FP{session}.json"
     if out_file.exists():
         with out_file.open("r", encoding="utf-8") as f:
-            return json.load(f)
+            data = json.load(f)
+        import math
+        if any(
+            any(isinstance(v, float) and math.isnan(v) for v in rec.values())
+            for rec in data
+        ):
+            return None
+        return data
     return None
 
 
